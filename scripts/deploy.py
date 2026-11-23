@@ -129,7 +129,7 @@ def main() -> int:
     else:
         print(f"Account WASM already installed: {account_hash}")
 
-    shade_wasm_hash = (hashlib.sha256((ROOT / shade_opt).read_bytes()).hexdigest()\n                       if not dry_run else "<shade-wasm-sha256>")\n    checkpoint(shade_wasm_hash=shade_wasm_hash)\n\n    shade_wasm_hash = (hashlib.sha256((ROOT / shade_opt).read_bytes()).hexdigest()
+    shade_wasm_hash = (hashlib.sha256((ROOT / shade_opt).read_bytes()).hexdigest()
                        if not dry_run else "<shade-wasm-sha256>")
     checkpoint(shade_wasm_hash=shade_wasm_hash)
 
