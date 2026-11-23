@@ -128,7 +128,7 @@ def main() -> int:
     else:
         print(f"Account WASM already installed: {account_hash}")
 
-    shade_id = record.get("shade_contract_id")
+    shade_wasm_hash = (hashlib.sha256((ROOT / shade_opt).read_bytes()).hexdigest()\n                       if not dry_run else "<shade-wasm-sha256>")\n    checkpoint(shade_wasm_hash=shade_wasm_hash)\n\n    shade_id = record.get("shade_contract_id")
     if not shade_id:
         shade_id = run(["stellar", "contract", "deploy", "--wasm", shade_opt,
                         "--network", network, "--source-account",
