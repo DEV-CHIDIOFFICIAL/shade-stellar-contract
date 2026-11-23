@@ -27,7 +27,7 @@ STELLAR_DIR = .stellar
 # ============================================================================
 
 .PHONY: help build test optimize clean fmt lint fixtures \
-	deploy-shade deploy-account deploy-all \
+	deploy deploy-dry-run deploy-shade deploy-account deploy-all \
 	init-shade \
 	pause-shade unpause-shade upgrade-shade \
 	check-admin check-network docs docs-serve docs-check
@@ -110,7 +110,13 @@ check-admin:
 $(STELLAR_DIR):
 	@mkdir -p $(STELLAR_DIR)
 
-deploy: ## Build, deploy, and configure Shade from deploy/$(NETWORK).toml\n\t@python3 scripts/deploy.py --network $(NETWORK)\n\ndeploy-dry-run: ## Preview a complete deployment without sending transactions\n\t@python3 scripts/deploy.py --network $(NETWORK) --dry-run\n\ndeploy-shade: optimize check-network $(STELLAR_DIR) ## Deploy Shade contract
+deploy: ## Build, deploy, and configure Shade from deploy/$(NETWORK).toml
+	@python3 scripts/deploy.py --network $(NETWORK)
+
+deploy-dry-run: ## Preview a complete deployment without sending transactions
+	@python3 scripts/deploy.py --network $(NETWORK) --dry-run
+
+deploy-shade: optimize check-network $(STELLAR_DIR) ## Deploy Shade contract
 	@echo "Deploying Shade contract to $(NETWORK)..."
 	@stellar contract deploy \
 		--wasm $(SHADE_WASM_OPT) \
