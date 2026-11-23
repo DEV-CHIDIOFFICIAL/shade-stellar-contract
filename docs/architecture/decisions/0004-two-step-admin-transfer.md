@@ -16,7 +16,7 @@ Admin transfer is a two-step flow: the current admin nominates a pending admin v
 - A transfer cannot complete unless the new address can actually sign.
 - The current admin can cancel or overwrite a pending nomination.
 - Transfers take two transactions instead of one.
-- A nominee that is a multisig account must collect the required signatures to call `accept_admin_transfer`, so the multisig setup must be verified before nomination.
+- A nominee that is a multisig account must collect the required signatures to call `accept_admin_transfer`, so the multisig setup must be verified before nomination. The multisig signer configuration, thresholds, and a test signing run should be confirmed as described in [Admin key management](../../security/admin-key-management.md) before `propose_admin_transfer` is called, since a nominee that cannot meet its threshold will leave the pending transfer stuck.
 
 ## Alternatives considered
 
