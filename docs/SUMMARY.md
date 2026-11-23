@@ -42,6 +42,7 @@
   - [Analytics and History](concepts/analytics-and-history.md)
   - [Token Analytics](concepts/token-analytics.md)
 - [Security](security/README.md)
+  - [Audit readiness package](security/audit-package.md)
   - [Threat Model](security/threat-model.md)
   - [Access Control](security/access-control.md)
   - [Admin and Ownership](security/admin-and-ownership.md)
