@@ -107,6 +107,7 @@ All functions gated by `core::assert_admin` (which requires `admin.require_auth(
 ### Key management
 
 - Use a multisig or hardware wallet for the admin key. A single EOA key is a single point of failure.
+- See [Admin key management](admin-key-management.md) for step-by-step guidance on setting up a Stellar multisig account, collecting signatures for admin transactions, hardware wallet options, and moving the admin role via the two-step transfer.
 - Document the admin key recovery procedure. If the key is lost and no transfer was proposed, the protocol is permanently locked.
 - Consider using a smart contract as the admin address with a governance mechanism.
 

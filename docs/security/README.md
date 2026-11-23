@@ -9,5 +9,6 @@ Threat model, access control, and audit-relevant notes for the Shade Protocol co
 - [Pausable emergency-stop mechanism](pausable.md) — pause/unpause, blocked/allowed functions, operational playbook.
 - [Reentrancy protection](reentrancy.md) — enter/exit guard, guarded functions, contributor rules.
 - [Admin ownership and two-step admin transfer](admin-and-ownership.md) — initialization, propose/accept flow, key management.
+- [Admin key management with Stellar multisig accounts](admin-key-management.md) — multisig setup, signing admin transactions, hardware wallet signers, two-step admin transfer to a multisig account, and signer rotation and loss procedures.
 
 ← [Back to documentation home](../README.md)
