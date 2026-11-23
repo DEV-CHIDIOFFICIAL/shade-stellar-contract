@@ -11,6 +11,7 @@
   - [Running Tests](getting-started/running-tests.md)
 - [Architecture](architecture/README.md)
   - [Overview](architecture/overview.md)
+  - [Off-Chain Architecture](architecture/off-chain-architecture.md)
   - [Workspace Layout](architecture/workspace-layout.md)
   - [Component Pattern](architecture/component-pattern.md)
   - [Storage Model](architecture/storage-model.md)
