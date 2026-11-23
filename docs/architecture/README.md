@@ -2,6 +2,7 @@
 
 How the Shade Protocol contracts and shared components fit together.
 
+- [Off-chain reference architecture](off-chain-architecture.md) — the off-chain services around a production deployment: indexer, webhook relayer, billing keeper, payment page, monitoring, and the trust boundaries between them.
 - [Workspace and crate layout](workspace-layout.md).
 - [The component pattern](component-pattern.md) — the `shade` contract's component structure.
 - [Storage model](storage-model.md) — every `DataKey` variant, storage tier usage, ID-counter and collection patterns, and TTL/rent behavior in the `shade` contract.
