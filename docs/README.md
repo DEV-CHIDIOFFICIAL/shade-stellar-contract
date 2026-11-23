@@ -28,4 +28,4 @@ Domain and Soroban terminology used throughout these docs is defined in [`docs/g
 
 ## Contributing to the docs and contracts
 
-See the [Documentation Style Guide](contributing/documentation-style-guide.md) for tone, formatting, and terminology rules, [`docs/contributing/templates/`](contributing/templates) for page templates, and [Adding a Component to Shade](contributing/adding-a-component.md) for a complete tutorial on implementing new contract features.
+See the [Documentation Style Guide](contributing/documentation-style-guide.md) for tone, formatting, and terminology rules, the [Resource Optimization Guide](contributing/resource-optimization.md) for Soroban cost guidance, and [`docs/contributing/templates/`](contributing/templates) for the page templates to start a new page from.
