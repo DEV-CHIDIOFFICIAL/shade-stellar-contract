@@ -1,0 +1,15 @@
+# Mainnet deployment settings. Review every value with a second operator.
+# The script refuses to deploy while required values are blank.
+admin = ""
+platform_account = ""
+
+# Add only reviewed production token contracts and fee rates.
+[[tokens]]
+address = ""
+fee_bps = 500
+
+# Optional oracle for fiat-priced tokens:
+# [tokens.oracle]
+# contract = "C..."
+# price_decimals = 14
+# token_decimals = 7
