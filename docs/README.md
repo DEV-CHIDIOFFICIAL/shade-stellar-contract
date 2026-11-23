@@ -28,4 +28,4 @@ Domain and Soroban terminology used throughout these docs is defined in [`docs/g
 
 ## Contributing to the docs
 
-See the [Documentation Style Guide](contributing/documentation-style-guide.md) for tone, formatting, and terminology rules, and [`docs/contributing/templates/`](contributing/templates) for the page templates to start a new page from.
+See the [Documentation Style Guide](contributing/documentation-style-guide.md) for tone, formatting, and terminology rules, the [Resource Optimization Guide](contributing/resource-optimization.md) for Soroban cost guidance, and [`docs/contributing/templates/`](contributing/templates) for the page templates to start a new page from.
