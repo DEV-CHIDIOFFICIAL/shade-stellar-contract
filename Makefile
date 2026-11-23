@@ -110,7 +110,7 @@ check-admin:
 $(STELLAR_DIR):
 	@mkdir -p $(STELLAR_DIR)
 
-deploy-shade: optimize check-network $(STELLAR_DIR) ## Deploy Shade contract
+deploy: ## Build, deploy, and configure Shade from deploy/$(NETWORK).toml\n\t@python3 scripts/deploy.py --network $(NETWORK)\n\ndeploy-dry-run: ## Preview a complete deployment without sending transactions\n\t@python3 scripts/deploy.py --network $(NETWORK) --dry-run\n\ndeploy-shade: optimize check-network $(STELLAR_DIR) ## Deploy Shade contract
 	@echo "Deploying Shade contract to $(NETWORK)..."
 	@stellar contract deploy \
 		--wasm $(SHADE_WASM_OPT) \
