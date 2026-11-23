@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import hashlib
 import os
 import shlex
 import subprocess
@@ -128,7 +129,11 @@ def main() -> int:
     else:
         print(f"Account WASM already installed: {account_hash}")
 
-    shade_wasm_hash = (hashlib.sha256((ROOT / shade_opt).read_bytes()).hexdigest()\n                       if not dry_run else "<shade-wasm-sha256>")\n    checkpoint(shade_wasm_hash=shade_wasm_hash)\n\n    shade_id = record.get("shade_contract_id")
+    shade_wasm_hash = (hashlib.sha256((ROOT / shade_opt).read_bytes()).hexdigest()\n                       if not dry_run else "<shade-wasm-sha256>")\n    checkpoint(shade_wasm_hash=shade_wasm_hash)\n\n    shade_wasm_hash = (hashlib.sha256((ROOT / shade_opt).read_bytes()).hexdigest()
+                       if not dry_run else "<shade-wasm-sha256>")
+    checkpoint(shade_wasm_hash=shade_wasm_hash)
+
+    shade_id = record.get("shade_contract_id")
     if not shade_id:
         shade_id = run(["stellar", "contract", "deploy", "--wasm", shade_opt,
                         "--network", network, "--source-account",
@@ -141,8 +146,10 @@ def main() -> int:
         print(f"Using recorded Shade contract: {shade_id}")
 
     if not dry_run:
-        current_admin = invoke(network, shade_id, "get_admin", dry_run=False, read=True)
-        if not current_admin:
+        try:
+            current_admin = invoke(network, shade_id, "get_admin", dry_run=False, read=True)
+        except RuntimeError:
+            # A fresh contract has no admin until initialize succeeds.
             invoke(network, shade_id, "initialize", ["--admin", admin], dry_run=False)
             current_admin = invoke(network, shade_id, "get_admin", dry_run=False, read=True)
         ensure_equal(current_admin, admin, "Shade admin")
@@ -219,7 +226,8 @@ def main() -> int:
 
     if not dry_run:
         checkpoint(verified=True, admin=admin, platform_account=platform_account,
-                   tokens=tokens, shade_wasm=shade_opt, account_wasm=account_opt)
+                   tokens=tokens, shade_wasm=shade_opt, account_wasm=account_opt,
+                   shade_wasm_hash=shade_wasm_hash, account_wasm_hash=account_hash)
         try:
             info = run(["stellar", "network", "info", "--network", network],
                        dry_run=False, capture=True)
