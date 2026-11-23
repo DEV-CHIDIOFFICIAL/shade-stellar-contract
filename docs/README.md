@@ -26,6 +26,6 @@ Shade is a decentralized payment gateway built on Stellar/Soroban that lets merc
 
 Domain and Soroban terminology used throughout these docs is defined in [`docs/glossary.md`](glossary.md). Link to it on first use of a term, per the [style guide](contributing/documentation-style-guide.md#terminology).
 
-## Contributing to the docs
+## Contributing to the docs and contracts
 
-See the [Documentation Style Guide](contributing/documentation-style-guide.md) for tone, formatting, and terminology rules, and [`docs/contributing/templates/`](contributing/templates) for the page templates to start a new page from.
+See the [Documentation Style Guide](contributing/documentation-style-guide.md) for tone, formatting, and terminology rules, [`docs/contributing/templates/`](contributing/templates) for page templates, and [Adding a Component to Shade](contributing/adding-a-component.md) for a complete tutorial on implementing new contract features.

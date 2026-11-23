@@ -65,6 +65,7 @@
   - [Admin Runbook](operations/admin-runbook.md)
   - [Upgrade Runbook](operations/upgrade-runbook.md)
 - [Contributing](contributing/documentation-style-guide.md)
+  - [Adding a Component](contributing/adding-a-component.md)
   - [Docs Tooling](contributing/docs-tooling.md)
   - [Concept Template](contributing/templates/concept-template.md)
   - [How-To Template](contributing/templates/how-to-template.md)
