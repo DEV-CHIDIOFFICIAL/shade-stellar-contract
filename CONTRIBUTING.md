@@ -41,6 +41,8 @@ These prefixes mirror the [commit type](#commit-guidelines) you'll use most in t
 
 `contracts/` holds only the payment gateway: the `shade` hub and the per-merchant `account` contract. Before adding to `shade`, ask whether a merchant needs it to accept a payment, settle it, refund it, or see it on a dashboard. If not, it belongs in `example/`, a separate workspace that CI does not run against. See [ADR 0007](docs/architecture/decisions/0007-core-gateway-scope.md).
 
+When contributing features to the `shade` gateway hub, follow the step-by-step walkthrough in [Adding a Component to `shade`](docs/contributing/adding-a-component.md) for how storage keys, error codes, events, component modules, interface traits, cross-cutting guards, and tests fit together.
+
 ## Development Setup
 
 ### Prerequisites
@@ -225,6 +227,7 @@ Before submitting a PR, ensure:
 
 ## Code Style
 
+- Follow the architectural guide in [Adding a Component to `shade`](docs/contributing/adding-a-component.md) for all feature additions.
 - Follow Rust standard formatting (enforced by `cargo fmt`)
 - Follow Rust naming conventions
 - Use meaningful variable and function names
