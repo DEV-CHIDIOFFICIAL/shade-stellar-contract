@@ -67,6 +67,7 @@
   - [Admin Runbook](operations/admin-runbook.md)
   - [Upgrade Runbook](operations/upgrade-runbook.md)
 - [Contributing](contributing/documentation-style-guide.md)
+  - [Contract Coding Conventions](contributing/coding-conventions.md)
   - [Adding a Component](contributing/adding-a-component.md)
   - [Resource Optimization](contributing/resource-optimization.md)
   - [Docs Tooling](contributing/docs-tooling.md)
