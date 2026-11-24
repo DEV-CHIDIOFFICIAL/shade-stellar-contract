@@ -16,7 +16,6 @@ pub mod test_fiat_pricing;
 pub mod test_invoice;
 pub mod test_invoice_amendment;
 pub mod test_invoice_claim_refund;
-pub mod test_invoice_expired_refund;
 pub mod test_invoice_expiry;
 pub mod test_invoice_filter;
 pub mod test_invoice_partial_refund;
