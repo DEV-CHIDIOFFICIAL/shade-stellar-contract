@@ -23,6 +23,65 @@ Deploy the `shade` hub contract to local, testnet, or mainnet, and bring the dep
 1. **`shade`** — the payment hub.
 2. **The `account` WASM** — uploaded once, not deployed. Its hash is registered with `set_account_wasm_hash`, and each merchant then deploys their own instance with `deploy_merchant_account`.
 
+## Scripted deployment (recommended)
+
+Use the idempotent deployment runner for testnet and mainnet. It builds and
+optimizes both WASMs, installs the `account` WASM, deploys and initializes
+`shade`, registers the account WASM hash, applies platform/token/fee/oracle
+settings, verifies readable on-chain values, and writes a deployment record.
+
+### Configure the target network
+
+Edit `deploy/testnet.toml` or `deploy/mainnet.toml` before running:
+
+- `admin`: contract administrator and signer for configuration calls.
+- `platform_account`: fee recipient (defaults to admin).
+- `[[tokens]]`: accepted token contract address and `fee_bps` (500 = 5%).
+- Optional `[tokens.oracle]`: oracle contract, `price_decimals`, and
+  `token_decimals` for fiat-priced tokens.
+
+The checked-in files are templates with blank addresses. Populate and review
+them first; the runner refuses missing required values. The CLI identity
+defaults to `default`; set `STELLAR_SOURCE_ACCOUNT` to override it. The signer
+must be authorized as the configured admin.
+
+### Preview and deploy
+
+Python 3.11+ and Stellar CLI 23.x are required.
+
+```bash
+# Preview planned commands without contacting the network or writing files.
+make deploy-dry-run NETWORK=testnet
+
+# Deploy and fully configure testnet.
+make deploy NETWORK=testnet
+
+# Mainnet: review deploy/mainnet.toml independently before execution.
+make deploy-dry-run NETWORK=mainnet
+make deploy NETWORK=mainnet
+```
+
+The runner writes progress and deployment artifacts to
+`.stellar/deployments/<network>.json` (ignored by git). The record includes the
+network, Shade contract ID, account and Shade WASM hashes, configured values,
+verification status, and ledger information when returned by the Stellar CLI.
+Keep this file with the team's deployment records. Checkpoints are written
+after irreversible deployment/configuration steps so an interrupted run can
+resume from the same record rather than creating another Shade instance.
+
+On reruns, the runner reuses the recorded contract ID and account WASM hash,
+reads current admin/platform-account/token/fee/oracle state, and submits only
+settings that differ. The contract has no getter for `AccountWasmHash`, so a
+successful registration is tracked in the local record; preserve that record
+to avoid repeating the call. A missing record cannot safely discover an
+existing deployment automatically—restore the record before resuming.
+
+**Mainnet safety:** independently verify the exact commit, optimized WASM
+hashes, admin, platform account, token contracts, fees, oracle contracts,
+deployer identity, and funding before executing the mainnet command. A dry run
+is a command preview, not a substitute for the two-person review and
+independent artifact verification in the mainnet checklist.
+
 ## Local
 
 ### Requirements
