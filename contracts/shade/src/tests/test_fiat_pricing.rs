@@ -1,6 +1,7 @@
 #![cfg(test)]
 
 use crate::shade::{Shade, ShadeClient};
+use crate::tests::support::deploy_token;
 use crate::types::{DataKey, InvoicePricingMode, OracleConfig};
 use soroban_sdk::testutils::{Address as _, Events, Ledger as _};
 use soroban_sdk::{contract, contractimpl, Address, Env, String, Symbol, TryFromVal, Val, Vec};
@@ -35,11 +36,6 @@ fn setup() -> (Env, ShadeClient<'static>, Address, Address) {
     (env, client, id, admin)
 }
 
-fn make_token(env: &Env) -> Address {
-    let a = Address::generate(env);
-    env.register_stellar_asset_contract_v2(a).address()
-}
-
 fn register_oracle(env: &Env, price: i128) -> (Address, MockOracleClient<'static>) {
     let oid = env.register(MockOracle, ());
     let oc = MockOracleClient::new(env, &oid);
@@ -71,7 +67,7 @@ fn event_topic_name(env: &Env, topics: &Vec<Val>) -> Symbol {
 #[test]
 fn test_set_and_get_token_oracle() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid, _) = register_oracle(&env, 200_000_000);
@@ -87,7 +83,7 @@ fn test_set_and_get_token_oracle() {
 #[test]
 fn test_resolve_invoice_amount_reflects_price_change() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid, oracle) = register_oracle(&env, 200_000_000);
@@ -117,7 +113,7 @@ fn test_resolve_invoice_amount_reflects_price_change() {
 #[test]
 fn test_oracle_config_overwrite() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid1, _) = register_oracle(&env, 100_000_000);
@@ -135,7 +131,7 @@ fn test_fiat_invoice_amount_matches_formula() {
     // $50.00 fiat (5000, dec=2) @ $5.00 price (500_000_000, dec=8), token_dec=7
     // expected = 5000 * 10^7 * 10^8 / (500_000_000 * 10^2) = 5e3 * 1e15 / 5e10 = 1e8
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let price = 500_000_000i128;
@@ -168,7 +164,7 @@ fn test_fiat_invoice_amount_matches_formula() {
 #[should_panic(expected = "HostError: Error(Contract, #1)")]
 fn test_set_oracle_non_admin_rejected() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid, _) = register_oracle(&env, 100_000_000);
@@ -183,7 +179,7 @@ fn test_set_oracle_non_admin_rejected() {
 #[should_panic(expected = "HostError: Error(Contract, #12)")]
 fn test_set_oracle_token_not_accepted() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     // token never added to accepted list
 
     let (oid, _) = register_oracle(&env, 100_000_000);
@@ -194,7 +190,7 @@ fn test_set_oracle_token_not_accepted() {
 #[should_panic(expected = "HostError: Error(Contract, #34)")]
 fn test_get_oracle_not_configured_panics() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
     // oracle never set
     client.get_token_oracle(&token);
@@ -205,7 +201,7 @@ fn test_get_oracle_not_configured_panics() {
 #[test]
 fn test_set_oracle_emits_token_oracle_set_event() {
     let (env, client, shade_id, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid, _) = register_oracle(&env, 100_000_000);
@@ -224,7 +220,7 @@ fn test_set_oracle_emits_token_oracle_set_event() {
 #[test]
 fn test_create_fiat_invoice_emits_fiat_priced_event() {
     let (env, client, shade_id, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid, _) = register_oracle(&env, 200_000_000);
@@ -254,7 +250,7 @@ fn test_create_fiat_invoice_emits_fiat_priced_event() {
 #[test]
 fn test_create_fiat_invoice_also_emits_invoice_created_event() {
     let (env, client, shade_id, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid, _) = register_oracle(&env, 200_000_000);
@@ -284,7 +280,7 @@ fn test_create_fiat_invoice_also_emits_invoice_created_event() {
 #[test]
 fn test_set_oracle_event_after_ledger_timestamp() {
     let (env, client, shade_id, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     env.ledger().set_timestamp(9_999_999);
@@ -305,7 +301,7 @@ fn test_set_oracle_event_after_ledger_timestamp() {
 fn test_oracle_storage_absent_after_rejected_call() {
     // After a TokenNotAccepted rejection the storage key must be absent.
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     let (oid, _) = register_oracle(&env, 100_000_000);
 
     // Attempt (will panic) - wrap in a new env so we can inspect storage after
@@ -315,7 +311,7 @@ fn test_oracle_storage_absent_after_rejected_call() {
     let client2 = ShadeClient::new(&env2, &id2);
     let admin2 = Address::generate(&env2);
     client2.initialize(&admin2);
-    let token2 = make_token(&env2);
+    let token2 = deploy_token(&env2);
     // token2 is NOT added to accepted list
 
     // The call is expected to panic – we verify via a second client that
@@ -350,7 +346,7 @@ fn test_oracle_storage_absent_after_rejected_call() {
 #[should_panic(expected = "HostError: Error(Contract, #35)")]
 fn test_fiat_invoice_fails_zero_price() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid, _) = register_oracle(&env, 0);
@@ -374,7 +370,7 @@ fn test_fiat_invoice_fails_zero_price() {
 #[should_panic(expected = "HostError: Error(Contract, #35)")]
 fn test_fiat_invoice_fails_negative_price() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid, _) = register_oracle(&env, -1);
@@ -397,8 +393,8 @@ fn test_fiat_invoice_fails_negative_price() {
 #[test]
 fn test_set_oracle_multiple_tokens_independently() {
     let (env, client, _, admin) = setup();
-    let token_a = make_token(&env);
-    let token_b = make_token(&env);
+    let token_a = deploy_token(&env);
+    let token_b = deploy_token(&env);
     client.add_accepted_token(&admin, &token_a);
     client.add_accepted_token(&admin, &token_b);
 
@@ -414,7 +410,7 @@ fn test_set_oracle_multiple_tokens_independently() {
 #[test]
 fn test_repeated_oracle_set_idempotent() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid, _) = register_oracle(&env, 100_000_000);
@@ -432,7 +428,7 @@ fn test_repeated_oracle_set_idempotent() {
 #[test]
 fn test_oracle_config_zero_decimals_boundary() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid, _) = register_oracle(&env, 1_000_000_000);
@@ -451,7 +447,7 @@ fn test_oracle_config_zero_decimals_boundary() {
 #[test]
 fn test_oracle_config_large_decimals() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid, _) = register_oracle(&env, 100_000_000);
@@ -471,8 +467,8 @@ fn test_oracle_config_large_decimals() {
 #[should_panic(expected = "HostError: Error(Contract, #34)")]
 fn test_oracle_not_configured_for_other_token_panics() {
     let (env, client, _, admin) = setup();
-    let token_a = make_token(&env);
-    let token_b = make_token(&env);
+    let token_a = deploy_token(&env);
+    let token_b = deploy_token(&env);
     client.add_accepted_token(&admin, &token_a);
     client.add_accepted_token(&admin, &token_b);
 
@@ -486,7 +482,7 @@ fn test_oracle_not_configured_for_other_token_panics() {
 #[test]
 fn test_multiple_fiat_invoices_use_same_oracle() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid, _) = register_oracle(&env, 100_000_000);
@@ -523,7 +519,7 @@ fn test_multiple_fiat_invoices_use_same_oracle() {
 #[test]
 fn test_fiat_invoice_pricing_mode_is_fixed_fiat() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let (oid, _) = register_oracle(&env, 200_000_000);
@@ -549,7 +545,7 @@ fn test_fiat_invoice_pricing_mode_is_fixed_fiat() {
 #[test]
 fn test_fiat_invoice_creation_and_resolution() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     // $2.00 with 8 decimals
@@ -584,7 +580,7 @@ fn test_fiat_invoice_creation_and_resolution() {
 #[should_panic(expected = "HostError: Error(Contract, #34)")] // OracleNotConfigured
 fn test_fiat_invoice_fails_without_oracle() {
     let (env, client, _, admin) = setup();
-    let token = make_token(&env);
+    let token = deploy_token(&env);
     client.add_accepted_token(&admin, &token);
 
     let merchant = Address::generate(&env);

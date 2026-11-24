@@ -2,27 +2,9 @@ use crate::components::platform_fee as platform_fee_component;
 use crate::errors::ContractError;
 use crate::shade::Shade;
 use crate::shade::ShadeClient;
+use crate::tests::support::init_hub_with_token;
 use soroban_sdk::testutils::{Address as _, Events as _};
 use soroban_sdk::{Address, Env, Map, Symbol, TryIntoVal, Val};
-
-fn setup_with_accepted_token(env: &Env) -> (Address, ShadeClient<'_>, Address) {
-    env.mock_all_auths();
-
-    let contract_id = env.register(Shade, ());
-    let client = ShadeClient::new(env, &contract_id);
-
-    let admin = Address::generate(env);
-    client.initialize(&admin);
-
-    let token_admin = Address::generate(env);
-    let token = env
-        .register_stellar_asset_contract_v2(token_admin)
-        .address();
-
-    client.add_accepted_token(&admin, &token);
-
-    (admin, client, token)
-}
 
 fn assert_fee_set_event(
     env: &Env,
@@ -58,7 +40,7 @@ fn assert_fee_set_event(
 #[test]
 fn test_set_fee_success() {
     let env = Env::default();
-    let (admin, client, token) = setup_with_accepted_token(&env);
+    let (admin, client, token) = init_hub_with_token(&env);
     let contract_id = client.address.clone();
     let fee: i128 = 500;
 
@@ -95,7 +77,7 @@ fn test_set_fee_unaccepted_token() {
 #[test]
 fn test_set_fee_unauthorized() {
     let env = Env::default();
-    let (_admin, client, token) = setup_with_accepted_token(&env);
+    let (_admin, client, token) = init_hub_with_token(&env);
 
     let non_admin = Address::generate(&env);
 
@@ -109,7 +91,7 @@ fn test_set_fee_unauthorized() {
 #[test]
 fn test_update_fee() {
     let env = Env::default();
-    let (admin, client, token) = setup_with_accepted_token(&env);
+    let (admin, client, token) = init_hub_with_token(&env);
 
     client.set_fee(&admin, &token, &200);
     assert_eq!(client.get_fee(&token), 200);
@@ -121,7 +103,7 @@ fn test_update_fee() {
 #[test]
 fn test_get_fee_default_zero() {
     let env = Env::default();
-    let (_admin, client, token) = setup_with_accepted_token(&env);
+    let (_admin, client, token) = init_hub_with_token(&env);
 
     assert_eq!(client.get_fee(&token), 0);
 }
@@ -130,7 +112,7 @@ fn test_get_fee_default_zero() {
 #[test]
 fn test_calculate_fee_returns_zero_when_no_fee_set() {
     let env = Env::default();
-    let (_admin, client, token) = setup_with_accepted_token(&env);
+    let (_admin, client, token) = init_hub_with_token(&env);
     let merchant = Address::generate(&env);
     let contract_id = client.address.clone();
     env.as_contract(&contract_id, || {
@@ -153,7 +135,7 @@ fn test_calculate_fee_returns_zero_when_no_fee_set() {
 #[test]
 fn test_calculate_fee_zero_amount() {
     let env = Env::default();
-    let (admin, client, token) = setup_with_accepted_token(&env);
+    let (admin, client, token) = init_hub_with_token(&env);
     let contract_id = client.address.clone();
     let merchant = Address::generate(&env);
 
@@ -171,7 +153,7 @@ fn test_calculate_fee_zero_amount() {
 #[test]
 fn test_calculate_fee_5_percent() {
     let env = Env::default();
-    let (admin, client, token) = setup_with_accepted_token(&env);
+    let (admin, client, token) = init_hub_with_token(&env);
     let contract_id = client.address.clone();
     let merchant = Address::generate(&env);
 
@@ -189,7 +171,7 @@ fn test_calculate_fee_5_percent() {
 #[test]
 fn test_calculate_fee_1_percent() {
     let env = Env::default();
-    let (admin, client, token) = setup_with_accepted_token(&env);
+    let (admin, client, token) = init_hub_with_token(&env);
     let contract_id = client.address.clone();
     let merchant = Address::generate(&env);
 
@@ -207,7 +189,7 @@ fn test_calculate_fee_1_percent() {
 #[test]
 fn test_calculate_fee_10_percent() {
     let env = Env::default();
-    let (admin, client, token) = setup_with_accepted_token(&env);
+    let (admin, client, token) = init_hub_with_token(&env);
     let contract_id = client.address.clone();
     let merchant = Address::generate(&env);
 
@@ -225,7 +207,7 @@ fn test_calculate_fee_10_percent() {
 #[test]
 fn test_calculate_fee_100_percent() {
     let env = Env::default();
-    let (admin, client, token) = setup_with_accepted_token(&env);
+    let (admin, client, token) = init_hub_with_token(&env);
     let contract_id = client.address.clone();
     let merchant = Address::generate(&env);
 
@@ -244,7 +226,7 @@ fn test_calculate_fee_100_percent() {
 #[test]
 fn test_calculate_fee_truncates_fractional_result() {
     let env = Env::default();
-    let (admin, client, token) = setup_with_accepted_token(&env);
+    let (admin, client, token) = init_hub_with_token(&env);
     let contract_id = client.address.clone();
     let merchant = Address::generate(&env);
 
@@ -272,7 +254,7 @@ fn test_calculate_fee_truncates_fractional_result() {
 #[test]
 fn test_calculate_fee_reflects_updated_fee() {
     let env = Env::default();
-    let (admin, client, token) = setup_with_accepted_token(&env);
+    let (admin, client, token) = init_hub_with_token(&env);
     let contract_id = client.address.clone();
     let merchant = Address::generate(&env);
 
@@ -300,7 +282,7 @@ fn test_calculate_fee_reflects_updated_fee() {
 #[test]
 fn test_calculate_fee_large_amount() {
     let env = Env::default();
-    let (admin, client, token) = setup_with_accepted_token(&env);
+    let (admin, client, token) = init_hub_with_token(&env);
     let contract_id = client.address.clone();
     let merchant = Address::generate(&env);
 
@@ -318,7 +300,7 @@ fn test_calculate_fee_large_amount() {
 #[test]
 fn test_calculate_fee_per_token_independence() {
     let env = Env::default();
-    let (admin, client, token_a) = setup_with_accepted_token(&env);
+    let (admin, client, token_a) = init_hub_with_token(&env);
     let contract_id = client.address.clone();
     let merchant = Address::generate(&env);
 
