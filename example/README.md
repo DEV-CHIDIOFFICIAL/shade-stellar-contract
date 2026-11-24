@@ -24,3 +24,5 @@ Each `src/from_shade/` folder holds modules that used to live inside `contracts/
 | `platform_extras` | `governance`, `bridge`, `multisig_withdrawal`, withdrawal proposal searches |
 
 Calls into the gateway use the `shade` crate (`shade::components::merchant`, `shade::types::Invoice`, and so on). This code is reference material and has not been fixed. It sits behind the `from-shade` feature, which is off by default, so the default build of each crate is unaffected. With the feature on, `escrow` compiles; the other crates still have errors from the code itself.
+
+[![Examples](https://github.com/ShadeProtocol/shade-stellar-contract/actions/workflows/examples.yml/badge.svg)](https://github.com/ShadeProtocol/shade-stellar-contract/actions/workflows/examples.yml)
