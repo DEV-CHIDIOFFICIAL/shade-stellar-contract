@@ -22,6 +22,7 @@ This file exists so that integrators and operators can see what each deployed WA
 - **shade:** Account addresses are derived from the merchant ID rather than a random salt.
 - **account: BREAKING:** Error codes 6 and 7 are renamed `WithdrawalRequestNotFound` and `InvalidWithdrawalStatus`.
 - **workspace:** Contracts build for `wasm32v1-none`, and CI builds them.
+- **workspace:** The Rust toolchain is pinned to 1.100.0 in `rust-toolchain.toml`, with `rustfmt`, `clippy` and `wasm32v1-none`. `cargo` uses it automatically, CI installs it instead of the latest stable, and `example/` shares the pin. Bumping it is documented in CONTRIBUTING.md.
 
 ### Fixed
 
