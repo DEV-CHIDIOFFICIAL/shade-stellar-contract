@@ -12,7 +12,6 @@ pub mod test_date_range_filter;
 pub mod test_draft_invoice;
 pub mod test_fee_discounts;
 pub mod test_fees;
-pub mod test_fiat_invoice_pricing;
 pub mod test_fiat_pricing;
 pub mod test_invoice;
 pub mod test_invoice_amendment;
