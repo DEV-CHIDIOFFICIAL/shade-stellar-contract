@@ -39,6 +39,7 @@ This file exists so that integrators and operators can see what each deployed WA
 - **workspace:** FAQ and developer troubleshooting guide under `docs/getting-started/`.
 - **workspace:** Guide to testing integrations against Shade locally, in-process and on a local network (`docs/guides/testing-integrations.md`).
 - **workspace:** Wallet integration guide for Freighter and Stellar Wallets Kit (`docs/guides/wallet-integration.md`).
+- **workspace:** ADR 0009 documenting bounded reads, cursor pagination, non-mutating query rules, and indexer delegation policy (#591).
 - **workspace:** This changelog and the release process (`docs/operations/releases.md`), including the breaking-change criteria and an "Update CHANGELOG" item in the pull request template.
 
 ## Pre-release history
