@@ -363,16 +363,16 @@ Factor this into a `fn assert_latest_*_event` helper at the top of the module wh
 - [ ] `cargo test -p <crate>` passes, and `cargo fmt --all` and `cargo clippy --workspace --all-features -- -D warnings` are clean.
 - [ ] No `test_snapshots/` file staged in the commit.
 
-## Next steps
-
-- [Building the Contracts](building.md) — turning a passing test run into a deployable WASM.
-- [Contributing guidelines](../../CONTRIBUTING.md) — commit format and the PR checklist.
-
-← [Back to Getting Started](README.md)
-
 ## Test file naming
 
 - One test file per component or feature, named `test_<component>.rs` (for example `test_fees.rs`, `test_refund.rs`).
 - Add new cases to the existing file for that feature. Don't create a second file such as `test_<feature>_v2.rs` or `test_invoice_<feature>.rs`.
 - Shared setup (deploying tokens, initializing the hub, registering merchants and accounts) goes in `tests/support.rs`, not in individual test files.
 - Put a short comment above each test describing the case, and declare new test files in `tests/mod.rs`.
+
+## Next steps
+
+- [Building the Contracts](building.md) — turning a passing test run into a deployable WASM.
+- [Contributing guidelines](../../CONTRIBUTING.md) — commit format and the PR checklist.
+
+← [Back to Getting Started](README.md)
