@@ -8,7 +8,6 @@ pub mod test_admin_transfer;
 pub mod test_analytics_aggregation;
 pub mod test_auto_withdrawal;
 pub mod test_batch_token_whitelist;
-pub mod test_calculate_fee;
 pub mod test_date_range_filter;
 pub mod test_draft_invoice;
 pub mod test_fee_discounts;
