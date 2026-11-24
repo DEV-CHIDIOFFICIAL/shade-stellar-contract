@@ -6,7 +6,7 @@ use crate::tests::support::LinkMerchantAccount as _;
 use soroban_sdk::testutils::Address as _;
 use soroban_sdk::{Address, Env, String};
 
-fn setup(env: &Env) -> (Address, ShadeClient<'_>, Address, Address, Address) {
+fn setup(env: &Env, fee_bps: i128) -> (Address, ShadeClient<'_>, Address, Address, Address) {
     env.mock_all_auths();
     let contract_id = env.register(Shade, ());
     let client = ShadeClient::new(env, &contract_id);
@@ -19,7 +19,9 @@ fn setup(env: &Env) -> (Address, ShadeClient<'_>, Address, Address, Address) {
         .register_stellar_asset_contract_v2(token_admin)
         .address();
     client.add_accepted_token(&admin, &token);
-    client.set_fee(&admin, &token, &1000); // 10% base fee in bps
+    if fee_bps > 0 {
+        client.set_fee(&admin, &token, &fee_bps);
+    }
 
     let merchant = Address::generate(env);
     client.register_merchant(&merchant);
@@ -35,7 +37,7 @@ fn setup(env: &Env) -> (Address, ShadeClient<'_>, Address, Address, Address) {
 #[test]
 fn test_fee_discounts_based_on_volume() {
     let env = Env::default();
-    let (_admin, client, token, merchant, merchant_account) = setup(&env);
+    let (_admin, client, token, merchant, merchant_account) = setup(&env, 1000);
     let payer = Address::generate(&env);
 
     // Fund the payer
@@ -104,7 +106,7 @@ fn test_fee_discounts_based_on_volume() {
 #[test]
 fn test_volume_tracking_tier_3() {
     let env = Env::default();
-    let (_admin, client, token, merchant, merchant_account) = setup(&env);
+    let (_admin, client, token, merchant, merchant_account) = setup(&env, 1000);
     let payer = Address::generate(&env);
 
     let token_client = soroban_sdk::token::StellarAssetClient::new(&env, &token);
@@ -134,4 +136,21 @@ fn test_volume_tracking_tier_3() {
 
     // 180,000 + 950 = 180,950.
     assert_eq!(token_balance_client.balance(&merchant_account), 180950);
+}
+
+#[test]
+fn test_no_discount_below_threshold() {
+    let env = Env::default();
+    let (_admin, client, token, merchant, _) = setup(&env, 500);
+
+    let fee = client.calculate_fee(&merchant, &token, &10_000_000);
+    assert_eq!(fee, 10_000_000i128 * 500 / 10_000);
+}
+
+#[test]
+fn test_zero_fee_returns_zero() {
+    let env = Env::default();
+    let (_admin, client, token, merchant, _) = setup(&env, 0);
+
+    assert_eq!(client.calculate_fee(&merchant, &token, &10_000_000), 0);
 }
