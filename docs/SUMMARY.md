@@ -9,6 +9,7 @@
   - [Quickstart](getting-started/quickstart.md)
   - [Building](getting-started/building.md)
   - [Running Tests](getting-started/running-tests.md)
+  - [Analytics Test Suite](getting-started/analytics-tests.md)
 - [Architecture](architecture/README.md)
   - [Overview](architecture/overview.md)
   - [Workspace Layout](architecture/workspace-layout.md)
