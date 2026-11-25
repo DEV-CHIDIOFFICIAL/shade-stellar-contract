@@ -41,14 +41,16 @@ These prefixes mirror the [commit type](#commit-guidelines) you'll use most in t
 
 `contracts/` holds only the payment gateway: the `shade` hub and the per-merchant `account` contract. Before adding to `shade`, ask whether a merchant needs it to accept a payment, settle it, refund it, or see it on a dashboard. If not, it belongs in `example/`, a separate workspace that CI does not run against. See [ADR 0007](docs/architecture/decisions/0007-core-gateway-scope.md).
 
+When contributing features to the `shade` gateway hub, follow the step-by-step walkthrough in [Adding a Component to `shade`](docs/contributing/adding-a-component.md) for how storage keys, error codes, events, component modules, interface traits, cross-cutting guards, and tests fit together.
+
 ## Development Setup
 
 ### Prerequisites
 
-- Rust (stable toolchain)
-- Cargo
-- `wasm32v1-none` target: `rustup target add wasm32v1-none`
+- [`rustup`](https://rustup.rs). The Rust version is pinned in [`rust-toolchain.toml`](rust-toolchain.toml), and the first `cargo` command you run in the repository installs that exact toolchain, with `rustfmt`, `clippy` and the `wasm32v1-none` target. You don't need to pick a version or add the target yourself.
 - Stellar CLI (if needed for contract deployment)
+
+`example/` uses the same pin. rustup finds the root `rust-toolchain.toml` from any subdirectory, so the example workspace builds with the same compiler as `contracts/`.
 
 ### Building the Project
 
@@ -99,7 +101,29 @@ make build  # cargo build --workspace --target wasm32v1-none --release
 make fixtures  # rebuild the account WASM that shade's tests deploy
 ```
 
-These are exactly the commands CI runs in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — running them locally before pushing means CI should not surprise you.
+These are the commands CI runs in [`.github/workflows/ci.yml`](.github/workflows/ci.yml). See [CI pipeline](docs/contributing/ci-pipeline.md) for every workflow and job, the exact local reproduction for each, and how `make ci` differs from GitHub CI.
+
+### Bumping the Rust toolchain
+
+The toolchain is pinned so that a new Rust release can't break CI or change the WASM output without a commit in this repository. Bump it deliberately, in its own PR:
+
+1. **When:** when a dependency (usually `soroban-sdk`) needs a newer compiler, when a new stable fixes a bug that affects us, or about once a quarter so the pin doesn't fall far behind. Don't bump it in the same PR as a feature or an SDK upgrade, so a WASM change can be traced to one cause.
+2. Edit `channel` in [`rust-toolchain.toml`](rust-toolchain.toml) to the new stable version, for example `channel = "1.101.0"`. Always use a full version number, never `stable`.
+3. Run the full CI set locally, with the new toolchain installing on the first command:
+
+   ```bash
+   make fixtures
+   make fmt
+   make lint
+   make test
+   make build
+   ```
+
+   New clippy lints are the most common failure. Fix them in the same PR.
+4. Compare the WASM sizes from `make build` with `main`'s, and note any change in the PR description. A bump that changes contract output must be called out before release.
+5. Update the version shown in [Prerequisites](docs/getting-started/prerequisites.md) and add a **workspace** entry to [`CHANGELOG.md`](CHANGELOG.md).
+
+CI reads the same file (`rustup toolchain install` in [`.github/workflows/ci.yml`](.github/workflows/ci.yml)), so no workflow changes are needed for a bump.
 
 ## Pre-commit Hooks
 
@@ -119,9 +143,10 @@ pre-commit run --all-files
 The hooks will automatically:
 
 - Validate YAML files
-- Format Rust code
-- Run clippy checks
-- Check for merge conflicts
+- Run clippy and `cargo check`
+- Check for merge conflicts, large files, mixed line endings and private keys
+
+They do not format Rust code; run `make fmt` yourself.
 
 ## Commit Guidelines
 
@@ -166,6 +191,7 @@ Run this checklist locally before opening (or re-requesting review on) a PR — 
 - [ ] `make test` (`cargo test --workspace --all-features`) — full workspace suite passes, not just the crate you touched.
 - [ ] **Snapshot check:** `cargo test` generates `test_snapshots/` directories as a side effect (see [Running the test suite § Test snapshots](docs/getting-started/running-tests.md#test-snapshots)). This repository does **not** commit these — confirm `git status` shows no `test_snapshots/` path before staging anything. If one slipped into a previous commit, remove it rather than leaving it in the PR.
 - [ ] **Docs checks:** if the PR adds or changes a page under `docs/`, it satisfies the [Documentation Style Guide's review checklist](docs/contributing/documentation-style-guide.md#review-checklist) (accuracy against code, working links, spell-check, correct template, terminology, style, and index updated). If the PR changes a public interface, it also satisfies [Keeping reference docs in sync](#keeping-reference-docs-in-sync) below.
+- [ ] **Bounded reads check:** all list-returning public functions are cursor-paginated with an enforced maximum page size, no storage entry grows with usage, and read functions have zero side effects (no storage writes or event emissions). See [ADR 0009](docs/architecture/decisions/0009-bounded-reads-and-pagination.md).
 - [ ] **Changelog:** if the PR changes anything an integrator or operator could notice, add an entry under `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md), and prefix it `**BREAKING:**` if it matches the [breaking-change criteria](docs/operations/releases.md#breaking-changes-for-integrators).
 - [ ] Commit messages follow the [Commit Guidelines](#commit-guidelines).
 
@@ -180,6 +206,7 @@ Run this checklist locally before opening (or re-requesting review on) a PR — 
 ## Review expectations
 
 - **Approvals required:** at least one maintainer approval before merge. A PR touching contract logic in `contracts/*/src/` that moves funds or changes authorization (payments, refunds, withdrawals) should get a second, independent look before merge — the same "not just self-reviewed by the author" principle the [Upgrade Runbook](docs/operations/upgrade-runbook.md) applies to upgrades.
+- **Code owners:** GitHub requests review automatically from the owners listed in [`.github/CODEOWNERS`](.github/CODEOWNERS) for the paths a PR touches: contract maintainers for `contracts/shade/` and `contracts/account/`, admins for `.github/workflows/` and the `Makefile`, docs maintainers for `docs/`, and optional owners for `example/`. Their approval is required on `main` and `contrib`; maintainers must keep **Require review from Code Owners** enabled in branch protection on both branches so these are blocking approvals, not advisory requests.
 - **Response times:** maintainers aim to leave an initial review (approval, requested changes, or at least a comment) within a few business days of a PR being marked ready for review. If you haven't heard anything after a week, a polite ping on the PR is welcome — it's not pushy, it's often just what was needed to surface a stalled review queue.
 - **Handling requested changes:** push additional commits to the same branch rather than force-pushing over history mid-review — reviewers may have left line comments anchored to specific commits, and a force-push can orphan those threads. Once a reviewer's comments are addressed, reply on each thread (or resolve it, if your review tooling allows) so the reviewer can tell at a glance what's been handled versus what's still open, then re-request review.
 - **Merge method:** PRs are merged via GitHub's standard merge commit (see the `Merge pull request #NNN from ...` commits in this repository's history) — you don't need to squash or rebase your branch yourself before merge unless a maintainer asks for it to clean up a messy commit history.
@@ -196,7 +223,7 @@ A PR that makes a significant design decision (new or restructured contract, fac
 
 ### Docs site and quality checks
 
-Preview the docs site locally with `make docs-serve` (or `mdbook serve docs`) and build it with `make docs`. Docs PRs run link checks in CI; see [Docs tooling](docs/contributing/docs-tooling.md) for how to run them locally.
+Preview the docs site locally with `make docs-serve` (or `mdbook serve docs`) and build it with `make docs`. The docs CI workflows are currently disabled, so run `make docs-check` before you open a docs PR; see [Docs tooling](docs/contributing/docs-tooling.md).
 
 ### Keeping reference docs in sync
 
@@ -215,6 +242,7 @@ This keeps the API reference trustworthy for integrators who read the docs inste
 Before submitting a PR, ensure:
 
 - [ ] Code follows the project's style guidelines
+- [ ] Bounded reads and pagination policy followed for all queries and collections (see [ADR 0009](docs/architecture/decisions/0009-bounded-reads-and-pagination.md))
 - [ ] All tests pass locally
 - [ ] Code is properly formatted (`cargo fmt`)
 - [ ] No clippy warnings (`cargo clippy`)
@@ -225,8 +253,11 @@ Before submitting a PR, ensure:
 
 ## Code Style
 
+- Read the [Contract coding conventions](docs/contributing/coding-conventions.md) for rules on errors, events, authorization, storage keys, and naming across smart contracts.
+- Follow the architectural guide in [Adding a Component to `shade`](docs/contributing/adding-a-component.md) for all feature additions.
 - Follow Rust standard formatting (enforced by `cargo fmt`)
 - Follow Rust naming conventions
+- Enforce bounded reads and pagination policy: all list-returning public functions must be cursor-paginated with an enforced maximum page size, no storage entry may grow with usage, and read functions must have zero side effects (no storage writes or event emissions). See [ADR 0009](docs/architecture/decisions/0009-bounded-reads-and-pagination.md) and [Resource Optimization](docs/contributing/resource-optimization.md).
 - Use meaningful variable and function names
 - Add comments for complex logic
 - Keep functions focused and small
@@ -267,6 +298,7 @@ If you have questions, feel free to:
 
 ## Related reading
 
+- [Contract coding conventions](docs/contributing/coding-conventions.md) — errors, events, authorization patterns, storage model, and naming rules across smart contracts.
 - [Documentation Style Guide](docs/contributing/documentation-style-guide.md) — tone, formatting, and terminology rules for anything under `docs/`.
 - [Architecture overview](docs/architecture/overview.md) — how the contracts, factories, and components fit together before you change or document any of them.
 - [Running the test suite](docs/getting-started/running-tests.md) — test layout, filtering, snapshot behavior, and the checklist for adding a new test module.

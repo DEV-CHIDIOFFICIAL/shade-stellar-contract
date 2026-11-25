@@ -60,6 +60,7 @@ Fixes #
 <!-- Mark completed items with an 'x' -->
 
 - [ ] My code follows the project's style guidelines
+- [ ] Bounded reads and pagination policy followed for all queries and collections (see [ADR 0009](../docs/architecture/decisions/0009-bounded-reads-and-pagination.md))
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] My changes generate no new warnings
