@@ -6,7 +6,7 @@ This page assumes you have a working toolchain — see [Prerequisites and Local 
 
 ## Running tests
 
-Tests compile and run against the **native** build, not WASM. You do not need the `wasm32-unknown-unknown` target to run them.
+Tests compile and run against the **native** build, not WASM. You do not need the `wasm32v1-none` target to run them.
 
 ### Everything
 
