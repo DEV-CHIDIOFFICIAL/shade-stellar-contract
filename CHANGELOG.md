@@ -8,7 +8,7 @@ This file exists so that integrators and operators can see what each deployed WA
 - **Entries are grouped by contract** with a bold label: **shade**, **account**. A label of **workspace** covers the toolchain, CI, and anything that touches both. Older entries also name contracts now in `example/`.
 - **Pull requests** are referenced as `#NNN`.
 
-> **Note:** No release has been tagged yet. Every crate is still at `0.0.0`, and the history before the first tag is recorded under [Pre-release history](#pre-release-history), backfilled from merged pull requests. Dates are merge dates. The first tagged release will move the contents of [Unreleased](#unreleased) into a dated version section.
+> **Note:** No release has been tagged yet. Every crate is still at `0.0.0`, and the history before the first tag is recorded under [Pre-release history](#pre-release-history), backfilled from merged pull requests. Dates are merge dates. The first tagged release will move the contents of [Unreleased](#unreleased) into a dated version section. Expected WASM SHA-256 hashes per release are published in the [Address & Hash Registry](docs/operations/address-registry.md) and verified following [Verifying Deployed Contracts](docs/security/verifying-deployments.md).
 
 ## [Unreleased]
 
