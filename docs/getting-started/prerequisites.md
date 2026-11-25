@@ -59,6 +59,8 @@ rustup show active-toolchain   # 1.100.0-<host> (overridden by '.../rust-toolcha
 
 You don't need to run `rustup target add` or `rustup component add` yourself. Your global default stays whatever it was, so other projects are unaffected.
 
+Soroban contracts compile to `wasm32v1-none`. It is pinned to WebAssembly 1.0 (MVP), the feature set Soroban accepts, so a newer `rustc` cannot turn on WebAssembly features the network rejects; it ships with Rust 1.84.0 and is the target Stellar CLI 23.x builds for.
+
 The pin exists so that a new Rust release can't break CI or change the compiled WASM without a commit here. That is also what lets anyone rebuild a tagged commit and check it against a deployed contract (see [Upgradeability](../architecture/upgradeability.md)). Any pin must be 1.84.0 or newer, the floor set by the `rust-version` of `soroban-sdk` 23.5.3 and of `soroban-env-common`, `soroban-env-host` and `stellar-xdr` 23.x, all resolved in [`Cargo.lock`](../../Cargo.lock). How and when to move the pin is in [Contributing § Bumping the Rust toolchain](../../CONTRIBUTING.md#bumping-the-rust-toolchain).
 
 ## Install the Stellar CLI
