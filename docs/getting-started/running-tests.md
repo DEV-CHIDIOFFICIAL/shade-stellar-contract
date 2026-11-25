@@ -114,6 +114,61 @@ let stored_admin: Address = env.as_contract(&contract_id, || {
 });
 ```
 
+## Test fixtures
+
+The `shade` test suite depends on two committed WASM fixtures in `contracts/shade/src/tests/fixtures/`:
+
+### `account.wasm`
+
+**Purpose:** The real, deployed `account` contract code that `shade`'s factory tests instantiate and interact with.
+
+**Used by:**
+- `test_account_factory.rs` — tests the factory flow: registering merchants, creating accounts, and setting the account WASM hash.
+
+**How to regenerate:** After any change under `contracts/account/`, run:
+
+```bash
+make fixtures
+```
+
+This builds the account contract and copies it to `contracts/shade/src/tests/fixtures/account.wasm`. CI automatically runs this step before every test.
+
+**When it's required:** You must rebuild the fixture *before testing* any time you change:
+- `contracts/account/src/` — the account contract code
+- `contracts/account/Cargo.toml` — account dependencies or feature flags
+
+If you skip this step and run tests, the fixture will be stale and factory tests may behave unexpectedly or fail in ways unrelated to your changes.
+
+### `upgrade_v2_contract.wasm`
+
+**Purpose:** A minimal contract used to test the shade contract's upgrade mechanism. It represents a hypothetical v2 of the shade contract and is uploaded during upgrade tests to verify that code can be replaced.
+
+**Used by:**
+- `test_upgrade.rs` — tests that the upgrade function accepts new WASM and that state persists across the upgrade.
+
+**How to regenerate:** This fixture was produced by compiling a minimal Soroban contract to WASM. To regenerate it, you would:
+
+1. Modify or rebuild the source that produced this fixture (the source is not currently in this repository).
+2. Compile to WASM with `cargo build --target wasm32v1-none --release`.
+3. Replace the file at `contracts/shade/src/tests/fixtures/upgrade_v2_contract.wasm` with the new binary.
+
+Currently, there is no automated `make` target for this — changes to the fixture are manual and rare (only when the upgrade test itself needs updating).
+
+**When it's required:** You need to rebuild this fixture *only* if you are modifying the upgrade test itself or the upgrade mechanism in `shade`. Ordinary contract changes do not affect this fixture.
+
+### Symptoms of a stale fixture
+
+If a fixture becomes out of date, tests that use it may fail in confusing ways:
+
+- **Stale `account.wasm`:**
+  - `test_account_factory.rs` tests fail because the factory is trying to instantiate outdated account code.
+  - Errors may reference unexpected storage keys, missing methods, or changed interface versions.
+  - The fix: `make fixtures`.
+
+- **Stale `upgrade_v2_contract.wasm`:**
+  - `test_upgrade.rs` may fail to upload the WASM or fail when calling the upgraded contract.
+  - This is rare and usually indicates the upgrade test itself changed and the fixture needs regeneration.
+
 ## Test snapshots
 
 ### What generates them
@@ -363,6 +418,13 @@ Factor this into a `fn assert_latest_*_event` helper at the top of the module wh
 - [ ] Emitted events are asserted by name and field, not just counted.
 - [ ] `cargo test -p <crate>` passes, and `cargo fmt --all` and `cargo clippy --workspace --all-features -- -D warnings` are clean.
 - [ ] No `test_snapshots/` file staged in the commit.
+
+## Test file naming
+
+- One test file per component or feature, named `test_<component>.rs` (for example `test_fees.rs`, `test_refund.rs`).
+- Add new cases to the existing file for that feature. Don't create a second file such as `test_<feature>_v2.rs` or `test_invoice_<feature>.rs`.
+- Shared setup (deploying tokens, initializing the hub, registering merchants and accounts) goes in `tests/support.rs`, not in individual test files.
+- Put a short comment above each test describing the case, and declare new test files in `tests/mod.rs`.
 
 ## Next steps
 

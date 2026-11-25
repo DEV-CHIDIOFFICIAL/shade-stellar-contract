@@ -48,7 +48,7 @@ and codes, not the accuracy of payload descriptions or emission semantics.
 Link checking remains a local [lychee](https://github.com/lycheeverse/lychee) check
 using `lychee.toml`; its previously disabled CI job is not enabled by this change.
 
-Run it locally from the repository root:
+Run it from the repository root:
 
 ```bash
 cargo install lychee
