@@ -21,11 +21,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-          targets: wasm32v1-none
+      # Installs the toolchain, components and targets pinned in
+      # rust-toolchain.toml, so CI never floats on the latest stable.
+      - name: Install Rust (pinned in rust-toolchain.toml)
+        run: |
+          rustup toolchain install
+          rustc --version
       
       - name: Cache cargo registry
         uses: actions/cache@v4
@@ -36,7 +37,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
       
@@ -60,10 +61,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32v1-none
+      # Installs the toolchain, components and targets pinned in
+      # rust-toolchain.toml, so CI never floats on the latest stable.
+      - name: Install Rust (pinned in rust-toolchain.toml)
+        run: |
+          rustup toolchain install
+          rustc --version
       
       - name: Cache cargo registry
         uses: actions/cache@v4
@@ -74,7 +77,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
       
@@ -91,8 +94,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      # Installs the toolchain, components and targets pinned in
+      # rust-toolchain.toml, so CI never floats on the latest stable.
+      - name: Install Rust (pinned in rust-toolchain.toml)
+        run: |
+          rustup toolchain install
+          rustc --version
       
       - name: Cache cargo registry
         uses: actions/cache@v4
@@ -103,7 +110,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
       

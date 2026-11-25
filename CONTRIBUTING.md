@@ -47,10 +47,10 @@ When contributing features to the `shade` gateway hub, follow the step-by-step w
 
 ### Prerequisites
 
-- Rust (stable toolchain)
-- Cargo
-- `wasm32v1-none` target: `rustup target add wasm32v1-none`
+- [`rustup`](https://rustup.rs). The Rust version is pinned in [`rust-toolchain.toml`](rust-toolchain.toml), and the first `cargo` command you run in the repository installs that exact toolchain, with `rustfmt`, `clippy` and the `wasm32v1-none` target. You don't need to pick a version or add the target yourself.
 - Stellar CLI (if needed for contract deployment)
+
+`example/` uses the same pin. rustup finds the root `rust-toolchain.toml` from any subdirectory, so the example workspace builds with the same compiler as `contracts/`.
 
 ### Building the Project
 
@@ -102,6 +102,28 @@ make fixtures  # rebuild the account WASM that shade's tests deploy
 ```
 
 These are the commands CI runs in [`.github/workflows/ci.yml`](.github/workflows/ci.yml). See [CI pipeline](docs/contributing/ci-pipeline.md) for every workflow and job, the exact local reproduction for each, and how `make ci` differs from GitHub CI.
+
+### Bumping the Rust toolchain
+
+The toolchain is pinned so that a new Rust release can't break CI or change the WASM output without a commit in this repository. Bump it deliberately, in its own PR:
+
+1. **When:** when a dependency (usually `soroban-sdk`) needs a newer compiler, when a new stable fixes a bug that affects us, or about once a quarter so the pin doesn't fall far behind. Don't bump it in the same PR as a feature or an SDK upgrade, so a WASM change can be traced to one cause.
+2. Edit `channel` in [`rust-toolchain.toml`](rust-toolchain.toml) to the new stable version, for example `channel = "1.101.0"`. Always use a full version number, never `stable`.
+3. Run the full CI set locally, with the new toolchain installing on the first command:
+
+   ```bash
+   make fixtures
+   make fmt
+   make lint
+   make test
+   make build
+   ```
+
+   New clippy lints are the most common failure. Fix them in the same PR.
+4. Compare the WASM sizes from `make build` with `main`'s, and note any change in the PR description. A bump that changes contract output must be called out before release.
+5. Update the version shown in [Prerequisites](docs/getting-started/prerequisites.md) and add a **workspace** entry to [`CHANGELOG.md`](CHANGELOG.md).
+
+CI reads the same file (`rustup toolchain install` in [`.github/workflows/ci.yml`](.github/workflows/ci.yml)), so no workflow changes are needed for a bump.
 
 ## Pre-commit Hooks
 
