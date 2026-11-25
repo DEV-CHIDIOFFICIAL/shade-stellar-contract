@@ -38,6 +38,7 @@ Everything after the crate selection is a substring filter on the full test path
 ```bash
 cargo test -p shade tests::test_invoice
 cargo test -p shade tests::test_upgrade
+cargo test -p shade tests::test_analytics_aggregation
 ```
 
 > **Warning:** The filter is a substring match, not a prefix match. `cargo test -p shade tests::test_invoice` also runs `tests::test_invoice_expiry`, `tests::test_invoice_void`, and every other module whose path contains that string. Add `::` and the test name, or `-- --exact`, when you need precision.
@@ -365,6 +366,7 @@ Factor this into a `fn assert_latest_*_event` helper at the top of the module wh
 
 ## Next steps
 
+- [Analytics Test Suite](analytics-tests.md) — full inventory and commands for the analytics aggregation tests.
 - [Building the Contracts](building.md) — turning a passing test run into a deployable WASM.
 - [Contributing guidelines](../../CONTRIBUTING.md) — commit format and the PR checklist.
 
