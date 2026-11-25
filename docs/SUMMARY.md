@@ -50,6 +50,7 @@
   - [Threat Model](security/threat-model.md)
   - [Access Control](security/access-control.md)
   - [Admin and Ownership](security/admin-and-ownership.md)
+  - [Admin Key Management](security/admin-key-management.md)
   - [Pausable](security/pausable.md)
   - [Reentrancy](security/reentrancy.md)
   - [Signatures](security/signatures.md)
