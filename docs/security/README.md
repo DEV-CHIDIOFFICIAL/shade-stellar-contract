@@ -10,6 +10,7 @@ Threat model, access control, and audit-relevant notes for the Shade Protocol co
 - [Pausable emergency-stop mechanism](pausable.md) — pause/unpause, blocked/allowed functions, operational playbook.
 - [Reentrancy protection](reentrancy.md) — enter/exit guard, guarded functions, contributor rules.
 - [Admin ownership and two-step admin transfer](admin-and-ownership.md) — initialization, propose/accept flow, key management.
+- [Verifying deployed contracts](verifying-deployments.md) — toolchain pinning, reproducible container builds, and on-chain WASM hash verification.
 - [Data privacy and on-chain data exposure](data-privacy.md) — every public stored field and event payload, what never to put on-chain, GDPR implications, and linkability mitigations.
 
 ← [Back to documentation home](../README.md)
