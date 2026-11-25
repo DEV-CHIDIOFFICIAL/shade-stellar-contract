@@ -50,7 +50,7 @@ Your `rustc` must be **1.84.0 or newer**. That floor comes from the `rust-versio
 
 ### Add the WASM target
 
-Soroban contracts compile to `wasm32v1-none`. Add the target once per toolchain:
+Soroban contracts compile to `wasm32v1-none`. It is pinned to WebAssembly 1.0 (MVP), the feature set Soroban accepts, so a newer `rustc` cannot turn on WebAssembly features the network rejects; it ships with Rust 1.84.0 and is the target Stellar CLI 23.x builds for. Add the target once per toolchain:
 
 ```bash
 rustup target add wasm32v1-none

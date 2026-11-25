@@ -35,10 +35,12 @@ This file exists so that integrators and operators can see what each deployed WA
 - **shade:** `deploy_merchant_account`, `verify_merchant_account`, `add_account_token`, `set_account_withdraw_threshold` and `approve_account_withdrawal`, so the account actions reserved for its manager are reachable.
 - **account:** `sweep_to`, `get_manager` and `get_account_info`. Threshold changes and withdrawal requests, approvals and executions now emit events.
 
+- **workspace:** Record ADR 0008 (Storage TTL Strategy) defining instance and persistent storage extension policies, ledger thresholds, and operator responsibilities (#590).
 - **workspace:** Documentation set under `docs/` — architecture, concepts, contract and interface references, security notes, operator runbooks, and guides (#469–#475, #478–#483, #520–#525).
 - **workspace:** FAQ and developer troubleshooting guide under `docs/getting-started/`.
 - **workspace:** Guide to testing integrations against Shade locally, in-process and on a local network (`docs/guides/testing-integrations.md`).
 - **workspace:** Wallet integration guide for Freighter and Stellar Wallets Kit (`docs/guides/wallet-integration.md`).
+- **workspace:** ADR 0009 documenting bounded reads, cursor pagination, non-mutating query rules, and indexer delegation policy (#591).
 - **workspace:** This changelog and the release process (`docs/operations/releases.md`), including the breaking-change criteria and an "Update CHANGELOG" item in the pull request template.
 
 ## Pre-release history
