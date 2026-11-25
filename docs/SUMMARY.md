@@ -53,6 +53,7 @@
   - [Pausable](security/pausable.md)
   - [Reentrancy](security/reentrancy.md)
   - [Signatures](security/signatures.md)
+  - [Data Privacy](security/data-privacy.md)
 - [Reference](reference/README.md)
   - [Shade Interface](reference/shade-interface.md)
   - [Data Types](reference/data-types.md)
