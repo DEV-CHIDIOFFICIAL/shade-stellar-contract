@@ -1,0 +1,14 @@
+# Testnet deployment settings. Replace example values before running.
+admin = ""
+platform_account = ""
+
+# Add one entry per accepted token. Fees are basis points (500 = 5%).
+[[tokens]]
+address = ""
+fee_bps = 500
+
+# Optional oracle for fiat-priced tokens:
+# [tokens.oracle]
+# contract = "C..."
+# price_decimals = 14
+# token_decimals = 7
