@@ -103,6 +103,47 @@ make fixtures  # rebuild the account WASM that shade's tests deploy
 
 These are exactly the commands CI runs in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — running them locally before pushing means CI should not surprise you.
 
+## Dependency update policy
+
+[Dependabot](.github/dependabot.yml) proposes version updates against `contrib`:
+
+| Ecosystem | Workspace | Schedule |
+| --- | --- | --- |
+| Cargo | `/` (core contracts) | Weekly |
+| Cargo | `/example` (separate workspace) | Monthly |
+| GitHub Actions | `/` | Weekly |
+
+Within each entry, minor and patch updates are grouped into one PR; major
+updates remain separate. Review release notes, security advisories, and any
+transitive `Cargo.lock` changes before merging. Grouping is for review convenience,
+not automatic approval or automatic merging.
+
+For Cargo updates, especially `soroban-sdk`, do not assume a minor or patch bump
+preserves contract behavior or snapshots:
+
+1. Rebuild affected WASM fixtures before testing. For the core workspace, run
+   `make fixtures` to regenerate the account fixture used by shade's tests.
+2. Run the full [pre-PR checklist](#pre-pr-checklist) and build the contracts with
+   `cargo build --workspace --target wasm32v1-none --release`.
+3. Review fixture changes and compare locally generated test snapshots before
+   and after the bump. Investigate changes to authorization, events, storage, or
+   resource use rather than blindly accepting new output. Describe expected
+   differences in the PR; do not commit `test_snapshots/` directories.
+4. For `/example` updates, rebuild any affected example fixtures and run tests
+   and builds from `example/` separately. The root workspace and CI exclude it.
+
+For GitHub Actions updates, review upstream release notes and changes to action
+inputs, permissions, and runner requirements, then inspect the affected CI runs.
+
+**Activation:** GitHub reads the Dependabot configuration from the repository's
+default branch (`main`). Maintainers must promote this configuration from
+`contrib` to `main` through the normal release process before scheduled updates
+can run. The `target-branch` settings direct version-update PRs to `contrib`;
+they do not redirect security-update PRs. Dependabot security updates are managed
+separately in repository settings and always target the default branch. See
+[GitHub's version update setup](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-version-updates)
+and [target branch behavior](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/customizing-dependabot-prs).
+
 ## Pre-commit Hooks
 
 This project uses pre-commit hooks to ensure code quality. Install and set them up:
