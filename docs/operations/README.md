@@ -3,6 +3,7 @@
 Runbooks for protocol operators, written from the [runbook template](../contributing/templates/runbook-template.md).
 
 - [Deployment Runbook](deployment.md) — deploying `shade` and uploading the `account` WASM to local, testnet, and mainnet.
+- [Mainnet Launch Readiness Checklist](mainnet-readiness.md) — evidence and approvals required for a mainnet go/no-go decision.
 - [Contract Upgrade Runbook](upgrade-runbook.md) — pre-flight, execution, verification, and rollback for upgrading a deployed `shade` contract.
 - [Admin Operations and Incident Response Runbook](admin-runbook.md) — routine admin operations (fees, tokens, merchants, roles, platform account) and incident response.
 - [Releases Runbook](releases.md) — versioning, tagging, building reproducible WASMs, recording hashes, writing release notes, publishing a GitHub Release, and the criteria for a breaking change.
