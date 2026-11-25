@@ -58,6 +58,7 @@
   - [Data Types](reference/data-types.md)
   - [Events](reference/events.md)
   - [Errors](reference/errors.md)
+  - [CLI Cookbook](reference/cli-cookbook.md)
   - [API Reference (rustdoc)](api.md)
 - [Guides](guides/README.md)
   - [Merchant Onboarding](guides/merchant-onboarding.md)
