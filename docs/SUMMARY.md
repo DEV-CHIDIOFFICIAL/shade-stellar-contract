@@ -25,6 +25,7 @@
     - [0003 Time-Locked Fee Changes](architecture/decisions/0003-time-locked-fee-changes.md)
     - [0004 Two-Step Admin Transfer](architecture/decisions/0004-two-step-admin-transfer.md)
     - [0007 Core Gateway Scope](architecture/decisions/0007-core-gateway-scope.md)
+    - [0008 Storage TTL Strategy](architecture/decisions/0008-storage-ttl-strategy.md)
     - [0009 Bounded Reads and Pagination Policy](architecture/decisions/0009-bounded-reads-and-pagination.md)
 - [Contracts](contracts/README.md)
   - [Shade](contracts/shade.md)
