@@ -1,73 +1,49 @@
-# 0008. Storage TTL Strategy
+# 0008. Storage TTL Strategy for Instance and Persistent Entries
 
 - **Status:** Accepted
 - **Date:** 2026-11-24
 
 ## Context
 
-Under Soroban's state archival and rent model, both contract instance storage and persistent storage entries have a finite Time-To-Live (TTL) measured in ledgers. If an entry's TTL expires without being renewed, validators archive the entry into cold storage. Once archived, the entry cannot be read or modified by smart contracts until an explicit restoration footprint and transaction fee are submitted to restore it.
+On Soroban, both contract instance storage and persistent storage entries are subject to state archival under the network's rent and Time-To-Live (TTL) mechanics. Entries that are not renewed before their TTL reaches zero are archived by validators and become inaccessible to contract execution until an explicit restoration transaction is submitted and paid for.
 
-Prior to Issue 348, as documented in [Storage model](../storage-model.md), no contract in the Shade workspace (`contracts/shade` or `contracts/account`) invoked `extend_ttl` or related host functions. All core state—including contract instance configuration (`Admin`, `Paused`, `AcceptedTokens`), merchant metadata (`Merchant`, `MerchantId`, `MerchantAccount`), and invoices (`Invoice`)—relied exclusively on the initial write-time TTL allocated by the network.
+Previously, as documented in [`docs/architecture/storage-model.md`](../storage-model.md), no contract in the Shade workspace invoked `extend_ttl` or related host functions. All core state—including contract instance metadata (`Admin`, `Paused`, `AcceptedTokens`), merchant registries (`Merchant`, `MerchantId`, `MerchantAccount`), and invoices (`Invoice`)—relied exclusively on default write-time TTLs without in-contract upkeep.
 
-This created an operational and availability hazard:
-- If the `shade` or `account` contract instances archive due to inactivity, all invoice creation, settlement, and administrative calls fail immediately.
-- If persistent entries for an active merchant or pending invoice archive, customer payments and merchant sweeps revert with entry-not-found errors.
-- On Stellar Soroban networks, ledgers close approximately every 5 seconds (~17,280 ledgers per day), and the network enforces maximum TTL boundaries (typically 518,400 ledgers, or ~30 days, up to network limits).
+If a contract instance or persistent entry expires, mission-critical operations (such as processing invoice payments, managing merchant payouts, or executing administrative controls) fail unexpectedly. Offloading all TTL maintenance to external operator scripts is operationally fragile and introduces single points of failure. Conversely, extending storage unconditionally across every read query would impose state-modification fees on read-only consumers and break standard read-only RPC semantics.
 
-A storage TTL strategy is required to balance guaranteed availability for active contracts and payment flows, predictable caller fees, zero-cost read operations, and state sustainability without unbounded rent costs.
+A clear architectural decision is required to balance automated on-chain survival, predictable transaction fees, and long-term storage sustainability.
 
 ## Decision
 
-We adopt an automated, in-contract TTL extension strategy with the following constants, rules, and operational boundaries:
+We adopt an automated in-contract TTL extension strategy that protects contract vitality along active execution paths while keeping read operations zero-cost:
 
-### 1. TTL Constants
+1. **Contract Instance TTL Extension on State Changes**:
+   - Both `shade` and per-merchant `account` contracts automatically extend their instance storage TTL on every state-changing (write) invocation (e.g., via a shared helper in `core` triggered on execution).
+   - **Threshold:** `276,480` ledgers (~16 days at 5-second ledger closes).
+   - **Extend-to:** `518,400` ledgers (~30 days at 5-second ledger closes), bounded safely below the network maximum TTL.
 
-We define standard TTL extension parameters based on a 5-second ledger close rate:
-- **`TTL_THRESHOLD` = `276,480` ledgers (~16 days):** The remaining lifetime watermark below which an entry's TTL is extended.
-- **`TTL_EXTEND_TO` = `518,400` ledgers (~30 days):** The target lifetime to which the entry is extended upon crossing the threshold.
+2. **Selective Persistent Entry Extension on Hot Paths**:
+   - Persistent entries touched during active payment and lifecycle workflows are extended when accessed on hot paths:
+     - Core merchant records: `DataKey::Merchant(id)`, `DataKey::MerchantId(address)`, and `DataKey::MerchantAccount(id)`.
+     - Active invoice records: `DataKey::Invoice(id)` during invoice creation, payment, voiding, or refunding.
+     - Configuration entries: `DataKey::TokenFee(token)`, `DataKey::MerchantPlatformFee(id, token)`, and `DataKey::MerchantTokens(address)`.
+   - The same threshold (`276,480` ledgers) and extend-to (`518,400` ledgers) values apply to persistent entry extensions.
 
-**Rationale:**
-- Stellar caps the maximum entry TTL (e.g. `max_entry_ttl` of 518,400 ledgers). Setting `TTL_EXTEND_TO` to 518,400 ledgers maximizes the validity window while staying safely within network protocol limits.
-- The threshold of 276,480 ledgers ensures that an entry is only renewed when less than ~16 days remain. Because Soroban's `extend_ttl` is idempotent and only acts when current TTL is below the threshold, high-frequency transactions during the first 14 days do not repeatedly bump the entry or incur redundant rent write charges. Active entries are guaranteed to always maintain between 16 and 30 days of lifetime.
-
-### 2. Contract Instance TTL Extension
-
-Both `shade` and per-merchant `account` contracts automatically extend their instance storage TTL (`env.storage().instance().extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO)`) on every state-changing call:
-- Handled through a shared helper in `core` triggered on mutating entry points (e.g. invoice creation, payments, admin configuration, sweeps, and withdrawals).
-- Ensures that contract code instances, manager references, pause states, and global administration keys stay live as long as the protocol experiences regular usage.
-
-### 3. Persistent Entry Extension on Hot Paths
-
-Persistent storage entries accessed along active execution paths are renewed during read or write operations on hot paths:
-- **Merchant records:** `DataKey::Merchant(id)`, `DataKey::MerchantId(address)`, and `DataKey::MerchantAccount(id)` extended during registration, status updates, fee configuration, and payment routing.
-- **Invoices:** `DataKey::Invoice(id)` extended upon creation, settlement (`pay_invoice`, batch payments), cancellation, voiding, and refunding.
-- **Fee and token configurations:** `DataKey::TokenFee(token)`, `DataKey::MerchantPlatformFee(id, token)`, and `DataKey::MerchantTokens(address)` extended during fee evaluation and payment routing.
-
-### 4. Read Paths Do Not Extend TTLs
-
-Read-only entry points (such as `get_invoice`, `get_merchant`, `get_fee`, `get_merchants`, `get_invoices`, and paginated list queries) **must not invoke `extend_ttl`**:
-- Invoking `extend_ttl` alters transaction semantics from a pure view query to a state-modifying transaction that requires transaction signatures and incurs base network fees.
-- Keeping read paths non-mutating preserves zero-fee, read-only Stellar RPC simulations (`simulateTransaction`) used by frontends, explorers, and indexers.
+3. **Read-Only Paths Do Not Extend TTLs**:
+   - Read-only queries (such as `get_invoice`, `get_merchant`, `get_fee`, and list views) do not invoke `extend_ttl`. View calls remain strictly non-mutating and incur no state-write gas or signature requirements.
 
 ## Consequences
 
-### Positive Consequences
-- **Automated Availability:** Active merchants, open invoices, and the contract instances stay live automatically without requiring constant manual intervention or reliance on centralized off-chain keepers.
-- **Zero Read-Only Overhead:** Integrators and dashboards can query contract state via standard RPC calls without signing transactions or paying gas.
-- **Efficient Rent Consumption:** The ~16-day threshold avoids redundant TTL extensions on consecutive transactions, minimizing rent fees.
-
-### Negative Consequences and Trade-offs
-- **Extra Fee Per Write Call:** Mutating calls that trigger an extension incur a small, bounded additional rent fee assessed by Soroban to pay for ledger lifetime extension. When the remaining TTL is already above `276,480` ledgers, `extend_ttl` is a no-op that consumes negligible CPU instructions and zero additional rent.
-- **Natural Archival of Inactive Historical Records:** Completed, voided, or refunded invoices that are never touched again, as well as abandoned merchant accounts, will eventually exhaust their TTL and be archived by validators.
-- **Operator Remaining Responsibilities:**
-  - Operators must run monitoring scripts to detect if the contract instances approach expiration during prolonged platform-wide inactivity (>16 days without any transactions) and submit maintenance bump calls if necessary.
-  - Operators must maintain a runbook and funded utility accounts to execute Soroban `restore` footprint transactions if historical, archived invoices need to be recovered for off-chain auditing or dispute resolution.
+- **Guaranteed Availability for Active Accounts**: Active merchants, recurring payment pathways, and contract administration stay permanently live without manual operator intervention.
+- **Predictable Rent Overhead**: Write calls incur a minor, bounded additional resource fee to cover the TTL bump.
+- **Natural Archival of Inactive Historical Records**: Completed, cancelled, or refunded invoices that are never accessed again will eventually reach their TTL and be archived by the network, saving persistent state rent across the ecosystem.
+- **Operator Responsibilities**: Operators must still maintain an off-chain monitoring runbook to restore archived historical invoices if a client requests retro-active audit data, and ensure operational funded accounts exist for administrative bumps if contracts experience prolonged dormancy.
 
 ## Alternatives considered
 
-- **Operator-only extension:**
-  - *Why rejected:* Relying entirely on external operator keeper bots to bump instance and entry TTLs introduces a single point of failure. If the keeper bot crashes, runs out of funds, or experiences network downtime, the payment gateway contract instance or active merchant records could be archived, causing user checkout transactions to fail catastrophically.
-- **Extending on every access (including read-only queries):**
-  - *Why rejected:* Calling `extend_ttl` inside read functions converts read-only queries into state-modifying transactions. Callers, indexers, and wallets would need to sign every query with an account private key and pay transaction fees just to inspect an invoice or check merchant verification status, breaking standard Web3 client integration patterns.
-- **Leaving archived invoices to be restored on demand:**
-  - *Why rejected:* Allowing pending or actively transacting invoices to expire without in-contract extension shifts the burden of archival restoration onto payers. Customers attempting to pay an expired invoice would encounter failed transactions with cryptic Soroban host errors, requiring complex, multi-transaction restoration pre-flights before checkout could succeed.
+- **Operator-only extension via external keeper bots**:
+  - *Why rejected:* Relying entirely on external keepers creates a severe availability hazard. If the keeper experiences downtime, network partition, or wallet drainage, the entire payment gateway could lock up due to instance archival.
+- **Extending on every access, including read-only queries**:
+  - *Why rejected:* Turning read-only calls into state-mutating transactions requires callers to sign transactions and pay transaction fees just to inspect an invoice or verify a merchant, violating idiomatic Web3 integration patterns and increasing RPC costs.
+- **Unbounded archival without contract-level extension**:
+  - *Why rejected:* Forcing users or merchants to manually encounter and resolve entry archival errors during routine checkout or settlement introduces unacceptable user friction and operational overhead.

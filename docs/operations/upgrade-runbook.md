@@ -25,8 +25,8 @@ Do **not** reach for this runbook for: fee changes, token whitelist changes, rol
 
 - [ ] The commit you're building from is the exact reviewed/merged commit — `git rev-parse HEAD` recorded before you build anything.
 - [ ] Working tree is clean (`git status` shows nothing pending).
-- [ ] `cargo build --target wasm32-unknown-unknown --release -p shade` succeeds.
-- [ ] `stellar contract optimize --wasm target/wasm32-unknown-unknown/release/shade.wasm` succeeds; use the `.optimized.wasm` output, never the plain `.wasm`.
+- [ ] `cargo build --target wasm32v1-none --release -p shade` succeeds.
+- [ ] `stellar contract optimize --wasm target/wasm32v1-none/release/shade.wasm` succeeds; use the `.optimized.wasm` output, never the plain `.wasm`.
 - [ ] Toolchain matches [Prerequisites](../getting-started/prerequisites.md) (Rust ≥ 1.84.0, Stellar CLI 23.x, `soroban-sdk` 23.5.3) — a build from a different toolchain version is not guaranteed to produce a byte-identical, independently-reproducible WASM (see [Upgradeability § Versioning](../architecture/upgradeability.md#versioning-and-identifying-a-deployed-build)).
 - [ ] `cargo test --workspace --all-features` (or at minimum `cargo test -p shade`) is fully green.
 
@@ -81,7 +81,7 @@ Do not proceed on the assumption that step 2 "must have worked" — read the sta
 ### 4. Install the new WASM
 
 ```bash
-stellar contract install --wasm target/wasm32-unknown-unknown/release/shade.optimized.wasm --network <network> --source-account admin
+stellar contract install --wasm target/wasm32v1-none/release/shade.optimized.wasm --network <network> --source-account admin
 ```
 
 > **Note:** On Stellar CLI 25.x, `stellar contract install` is a deprecated alias for `stellar contract upload`; both do the same thing as of this writing. Use whichever your pinned CLI version documents as current — check `stellar contract install --help` / `stellar contract upload --help` on your installed CLI.

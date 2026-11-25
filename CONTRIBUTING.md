@@ -168,6 +168,7 @@ Run this checklist locally before opening (or re-requesting review on) a PR — 
 - [ ] `make test` (`cargo test --workspace --all-features`) — full workspace suite passes, not just the crate you touched.
 - [ ] **Snapshot check:** `cargo test` generates `test_snapshots/` directories as a side effect (see [Running the test suite § Test snapshots](docs/getting-started/running-tests.md#test-snapshots)). This repository does **not** commit these — confirm `git status` shows no `test_snapshots/` path before staging anything. If one slipped into a previous commit, remove it rather than leaving it in the PR.
 - [ ] **Docs checks:** if the PR adds or changes a page under `docs/`, it satisfies the [Documentation Style Guide's review checklist](docs/contributing/documentation-style-guide.md#review-checklist) (accuracy against code, working links, spell-check, correct template, terminology, style, and index updated). If the PR changes a public interface, it also satisfies [Keeping reference docs in sync](#keeping-reference-docs-in-sync) below.
+- [ ] **Bounded reads check:** all list-returning public functions are cursor-paginated with an enforced maximum page size, no storage entry grows with usage, and read functions have zero side effects (no storage writes or event emissions). See [ADR 0009](docs/architecture/decisions/0009-bounded-reads-and-pagination.md).
 - [ ] **Changelog:** if the PR changes anything an integrator or operator could notice, add an entry under `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md), and prefix it `**BREAKING:**` if it matches the [breaking-change criteria](docs/operations/releases.md#breaking-changes-for-integrators).
 - [ ] Commit messages follow the [Commit Guidelines](#commit-guidelines).
 
@@ -217,6 +218,7 @@ This keeps the API reference trustworthy for integrators who read the docs inste
 Before submitting a PR, ensure:
 
 - [ ] Code follows the project's style guidelines
+- [ ] Bounded reads and pagination policy followed for all queries and collections (see [ADR 0009](docs/architecture/decisions/0009-bounded-reads-and-pagination.md))
 - [ ] All tests pass locally
 - [ ] Code is properly formatted (`cargo fmt`)
 - [ ] No clippy warnings (`cargo clippy`)
@@ -230,6 +232,7 @@ Before submitting a PR, ensure:
 - Follow the architectural guide in [Adding a Component to `shade`](docs/contributing/adding-a-component.md) for all feature additions.
 - Follow Rust standard formatting (enforced by `cargo fmt`)
 - Follow Rust naming conventions
+- Enforce bounded reads and pagination policy: all list-returning public functions must be cursor-paginated with an enforced maximum page size, no storage entry may grow with usage, and read functions must have zero side effects (no storage writes or event emissions). See [ADR 0009](docs/architecture/decisions/0009-bounded-reads-and-pagination.md) and [Resource Optimization](docs/contributing/resource-optimization.md).
 - Use meaningful variable and function names
 - Add comments for complex logic
 - Keep functions focused and small
